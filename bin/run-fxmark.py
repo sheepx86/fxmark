@@ -24,10 +24,10 @@ def catch_ctrl_C(sig, frame):
 
 class Runner(object):
     # media path
-    LOOPDEV = "/dev/loopX"
+    LOOPDEV = "/dev/loop7"
     NVMEDEV = "/dev/nvme0n1pX"
-    HDDDEV  = "/dev/sdX"
-    SSDDEV  = "/dev/sdY"
+    HDDDEV  = "/dev/pmem0m"
+    SSDDEV  = "/dev/pmem1m"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -49,8 +49,8 @@ class Runner(object):
         self.DURATION      = 30 # seconds
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
         self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem"]
-        self.FS_TYPES      = [
-#        self.FS_TYPES      = ["tmpfs",
+#        self.FS_TYPES      = [
+        self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
                               "xfs",
                               "btrfs", "f2fs",
@@ -517,7 +517,7 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("mem", "*", "DWOL", "80", "directio")),
+         ("mem", "tmpfs", "DWOL", "4", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
