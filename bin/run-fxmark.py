@@ -355,6 +355,13 @@ class Runner(object):
         if not rc:
             return False
 
+        if fs == "ext4_dax":
+            fs = "ext4"
+        elif fs == "xfs_dax":
+            fs = "xfs"
+        else:
+            return false;
+
         p = self.exec_cmd("sudo mkfs." + fs
                           + " " + self.HOWTO_MKFS.get(fs, "")
                           + " " + dev_path,
