@@ -484,11 +484,11 @@ def confirm_media_path():
     print("%" * 80)
     yn = input("All data in %s, %s, %s and %s will be deleted. Is it ok? [Y,N]: "
             % (Runner.HDDDEV, Runner.SSDDEV, Runner.NVMEDEV, Runner.LOOPDEV))
-    if yn != "Y":
+    if yn != "Y" and yn != 'y':
         print("Please, check Runner.LOOPDEV and Runner.NVMEDEV")
         exit(1)
     yn = input("Are you sure? [Y,N]: ")
-    if yn != "Y":
+    if yn != "Y" and yn != 'y':
         print("Please, check Runner.LOOPDEV and Runner.NVMEDEV")
         exit(1)
     print("%" * 80)
