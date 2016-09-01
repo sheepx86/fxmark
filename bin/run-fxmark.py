@@ -53,6 +53,7 @@ class Runner(object):
 #        self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
                               "xfs",
+                              "ext4_dax", "xfs_dax",
                               "btrfs", "f2fs",
                               "NOVA", "pmfs",
                               # "jfs", "reiserfs", "ext2", "ext3",
@@ -115,6 +116,8 @@ class Runner(object):
             "ext4":self.mount_anyfs,
             "ext4_no_jnl":self.mount_ext4_no_jnl,
             "xfs":self.mount_anyfs,
+            "ext4_dax":self.mount_daxfs,
+            "xfs_dax":self.mount_daxfs,
             "btrfs":self.mount_anyfs,
             "f2fs":self.mount_anyfs,
             "jfs":self.mount_anyfs,
@@ -128,6 +131,8 @@ class Runner(object):
             "ext4":"-F",
             "ext4_no_jnl":"-F",
             "xfs":"-f",
+            "ext4_dax":"-F",
+            "xfs_dax":"-f",
             "btrfs":"-f",
             "jfs":"-q",
             "reiserfs":"-q",
@@ -335,6 +340,28 @@ class Runner(object):
         if p.returncode is not 0:
             return False
         p = self.exec_cmd(' '.join(["sudo mount -t", fs,
+                                    dev_path, mnt_path]),
+                          self.dev_null)
+        if p.returncode is not 0:
+            return False
+        p = self.exec_cmd("sudo chmod 777 " + mnt_path,
+                          self.dev_null)
+        if p.returncode is not 0:
+            return False
+        return True
+
+    def mount_daxfs(self, media, fs, mnt_path):
+        (rc, dev_path) = self.init_media(media)
+        if not rc:
+            return False
+
+        p = self.exec_cmd("sudo mkfs." + fs
+                          + " " + self.HOWTO_MKFS.get(fs, "")
+                          + " " + dev_path,
+                          self.dev_null)
+        if p.returncode is not 0:
+            return False
+        p = self.exec_cmd(' '.join(["sudo mount -t", fs, "-o dax",
                                     dev_path, mnt_path]),
                           self.dev_null)
         if p.returncode is not 0:
