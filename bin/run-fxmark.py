@@ -54,7 +54,7 @@ class Runner(object):
                               "ext4", "ext4_no_jnl",
                               "xfs",
                               "btrfs", "f2fs",
-                              "NOVA",
+                              "NOVA", "pmfs",
                               # "jfs", "reiserfs", "ext2", "ext3",
         ]
         self.BENCH_TYPES   = [
@@ -120,6 +120,7 @@ class Runner(object):
             "jfs":self.mount_anyfs,
             "reiserfs":self.mount_anyfs,
             "NOVA":self.mount_NOVA,
+            "pmfs":self.mount_pmfs,
         }
         self.HOWTO_MKFS = {
             "ext2":"-F",
@@ -359,6 +360,9 @@ class Runner(object):
         if p.returncode is not 0:
             return False
         return True
+
+    def mount_pmfs(self, media, fs, mnt_path):
+        return mount_NOVA(self, media, fs, mnt_path);
 
     def mount_ext4_no_jnl(self, media, fs, mnt_path):
         (rc, dev_path) = self.init_media(media)
