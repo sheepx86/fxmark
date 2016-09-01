@@ -466,8 +466,8 @@ class Runner(object):
         return True
 
     def gen_config(self):
-        for ncore in sorted(self.ncores, reverse=True):
-            for bench in self.BENCH_TYPES:
+        for bench in self.BENCH_TYPES:
+            for ncore in sorted(self.ncores, reverse=True):
                 for media in self.MEDIA_TYPES:
                     for dio in self.DIRECTIOS:
                         for fs in self.FS_TYPES:
