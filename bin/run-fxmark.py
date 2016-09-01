@@ -49,8 +49,8 @@ class Runner(object):
         self.DURATION      = 30 # seconds
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
         self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem"]
-#        self.FS_TYPES      = [
-        self.FS_TYPES      = ["tmpfs",
+        self.FS_TYPES      = [
+#        self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
                               "xfs",
                               "btrfs", "f2fs",
@@ -362,7 +362,7 @@ class Runner(object):
         return True
 
     def mount_pmfs(self, media, fs, mnt_path):
-        return mount_NOVA(self, media, fs, mnt_path);
+        return self.mount_NOVA(media, fs, mnt_path);
 
     def mount_ext4_no_jnl(self, media, fs, mnt_path):
         (rc, dev_path) = self.init_media(media)
@@ -539,7 +539,7 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("nvme", "NOVA", "DWOL", "4", "directio")),
+         ("nvme", "*", "DWOL", "*", "directio")),
         # ("mem", "tmpfs", "DWOL", "4", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
