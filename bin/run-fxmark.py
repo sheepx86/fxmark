@@ -25,9 +25,9 @@ def catch_ctrl_C(sig, frame):
 class Runner(object):
     # media path
     LOOPDEV = "/dev/loop7"
-    NVMEDEV = "/dev/nvme0n1pX"
+    NVMEDEV = "/dev/pmem0m"
     HDDDEV  = "/dev/pmem0m"
-    SSDDEV  = "/dev/pmem1m"
+    SSDDEV  = "/dev/pmem0m"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -45,7 +45,7 @@ class Runner(object):
         self.DEBUG_OUT     = False
 
         # bench config
-        self.DISK_SIZE     = "32G"
+        self.DISK_SIZE     = "8G"
         self.DURATION      = 30 # seconds
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
         self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem"]
@@ -54,6 +54,7 @@ class Runner(object):
                               "ext4", "ext4_no_jnl",
                               "xfs",
                               "btrfs", "f2fs",
+                              "NOVA",
                               # "jfs", "reiserfs", "ext2", "ext3",
         ]
         self.BENCH_TYPES   = [
@@ -118,6 +119,7 @@ class Runner(object):
             "f2fs":self.mount_anyfs,
             "jfs":self.mount_anyfs,
             "reiserfs":self.mount_anyfs,
+            "NOVA":self.mount_NOVA,
         }
         self.HOWTO_MKFS = {
             "ext2":"-F",
@@ -342,6 +344,22 @@ class Runner(object):
             return False
         return True
 
+    def mount_NOVA(self, media, fs, mnt_path):
+        (rc, dev_path) = self.init_media(media)
+        if not rc:
+            return False
+
+        p = self.exec_cmd(' '.join(["sudo mount -t", fs, "-o init",
+                                    dev_path, mnt_path]),
+                          self.dev_null)
+        if p.returncode is not 0:
+            return False
+        p = self.exec_cmd("sudo chmod 777 " + mnt_path,
+                          self.dev_null)
+        if p.returncode is not 0:
+            return False
+        return True
+
     def mount_ext4_no_jnl(self, media, fs, mnt_path):
         (rc, dev_path) = self.init_media(media)
         if not rc:
@@ -517,7 +535,8 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("mem", "tmpfs", "DWOL", "4", "directio")),
+         ("nvme", "NOVA", "DWOL", "4", "directio")),
+        # ("mem", "tmpfs", "DWOL", "4", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
