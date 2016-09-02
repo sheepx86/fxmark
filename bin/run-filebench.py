@@ -152,6 +152,7 @@ if __name__ == "__main__":
     parser.add_option("--profbegin", help="profile begin command")
     parser.add_option("--profend", help="profile end command")
     parser.add_option("--proflog", help="profile log path")
+    parser.add_option("--directio", help="direct IO")
     (opts, args) = parser.parse_args()
 
     # check options
