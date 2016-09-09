@@ -25,9 +25,9 @@ def catch_ctrl_C(sig, frame):
 class Runner(object):
     # media path
     LOOPDEV = "/dev/loop7"
-    NVMEDEV = "/dev/pmem0m"
-    HDDDEV  = "/dev/pmem0m"
-    SSDDEV  = "/dev/pmem0m"
+    NVMMDEV = "/dev/pmem0"
+    HDDDEV  = "/dev/pmem0"
+    SSDDEV  = "/dev/pmem0"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -46,16 +46,21 @@ class Runner(object):
 
         # bench config
         self.DISK_SIZE     = "8G"
-        self.DURATION      = 30 # seconds
+        self.DURATION      = 15 # seconds
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
-        self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem"]
+        self.MEDIA_TYPES   = ["ssd", "hdd", "NVMM", "mem"]
         self.FS_TYPES      = [
 #        self.FS_TYPES      = ["tmpfs",
-                              "ext4", "ext4_no_jnl", "ext4_data_jnl",
+#                              "ext4", "ext4_no_jnl", "ext4_data_jnl",
+                              "ext4",
+                              "ext4_data_jnl",
                               "xfs",
-                              "ext4_dax", "xfs_dax",
-                              "btrfs", "f2fs",
-                              "NOVA", "pmfs",
+                              "ext4_dax",
+                              "xfs_dax",
+                              "btrfs",
+                              "f2fs",
+                              "NOVA",
+                              "pmfs",
                               # "jfs", "reiserfs", "ext2", "ext3",
         ]
         self.BENCH_TYPES   = [
@@ -68,14 +73,14 @@ class Runner(object):
             "MWRM",
             "MWCL",
             "MWCM",
-            "MWUM",
-            "MWUL",
+#            "MWUM",
+#            "MWUL",
             "DWTL",
 
             # filebench
-            "filebench_varmail",
-            "filebench_oltp",
-            "filebench_fileserver",
+#            "filebench_varmail",
+#            "filebench_oltp",
+#            "filebench_fileserver",
 
             # dbench
             "dbench_client",
@@ -143,7 +148,7 @@ class Runner(object):
         # media config
         self.HOWTO_INIT_MEDIA = {
             "mem":self.init_mem_disk,
-            "nvme":self.init_nvme_disk,
+            "NVMM":self.init_NVMM_disk,
             "ssd":self.init_ssd_disk,
             "hdd":self.init_hdd_disk,
         }
@@ -308,8 +313,8 @@ class Runner(object):
         self.unset_loopdev()
         self.umount(self.tmp_path)
 
-    def init_nvme_disk(self):
-        return (os.path.exists(Runner.NVMEDEV), Runner.NVMEDEV)
+    def init_NVMM_disk(self):
+        return (os.path.exists(Runner.NVMMDEV), Runner.NVMMDEV)
 
     def init_ssd_disk(self):
         return (os.path.exists(Runner.SSDDEV), Runner.SSDDEV)
@@ -563,13 +568,13 @@ def confirm_media_path():
     print("%% WARNING! WARNING! WARNING! WARNING! WARNING!")
     print("%" * 80)
     yn = input("All data in %s, %s, %s and %s will be deleted. Is it ok? [Y,N]: "
-            % (Runner.HDDDEV, Runner.SSDDEV, Runner.NVMEDEV, Runner.LOOPDEV))
+            % (Runner.HDDDEV, Runner.SSDDEV, Runner.NVMMDEV, Runner.LOOPDEV))
     if yn != "Y" and yn != 'y':
-        print("Please, check Runner.LOOPDEV and Runner.NVMEDEV")
+        print("Please, check Runner.LOOPDEV and Runner.NVMMDEV")
         exit(1)
     yn = input("Are you sure? [Y,N]: ")
     if yn != "Y" and yn != 'y':
-        print("Please, check Runner.LOOPDEV and Runner.NVMEDEV")
+        print("Please, check Runner.LOOPDEV and Runner.NVMMDEV")
         exit(1)
     print("%" * 80)
     print("\n\n")
@@ -597,7 +602,7 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("nvme", "*", "DWOL", "*", "directio")),
+         ("NVMM", "*", "*", "*", "directio")),
         # ("mem", "tmpfs", "DWOL", "4", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
