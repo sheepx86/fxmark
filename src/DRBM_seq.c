@@ -91,8 +91,7 @@ static int main_work(struct worker *worker)
         char *page = worker->page;
         char path[PATH_MAX];
         int fd, rc = 0;
-	int j;
-        off_t pos;
+        off_t pos, start_pos, end_pos;
         uint64_t iter = 0;
 
         assert(page);
@@ -106,12 +105,14 @@ static int main_work(struct worker *worker)
                 goto err_out;
 
         pos = PRIVATE_REGION_SIZE * worker->id;
+	start_pos = pos;
+	end_pos = start_pos + PRIVATE_REGION_SIZE; 
         for (iter = 0; !bench->stop; ++iter) {
-		lseek(fd, pos, SEEK_SET);
-                for (j = 0; j < PRIVATE_REGION_PAGE_NUM; ++j) {
-	                if (read(fd, page, PAGE_SIZE) != PAGE_SIZE)
-        	                goto err_out;
-		}
+		if (pos >= end_pos)
+			pos = start_pos;
+		if (pread(fd, page, PAGE_SIZE, pos) != PAGE_SIZE)
+			goto err_out;
+		pos += PAGE_SIZE;
         }
         close(fd);
 out:
