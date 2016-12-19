@@ -25,6 +25,7 @@ TC      = $(SRC)/MWCM.c $(SRC)/MWCL.c \
 		  $(SRC)/DRBH_bg.c $(SRC)/MRDM_bg.c \
 		  $(SRC)/DRBM_bg.c $(SRC)/MRPM_bg.c \
 		  $(SRC)/DRBL_seq.c $(SRC)/DRBM_seq.c \
+		  $(SRC)/DRBH_seq.c \
 		  $(SRC)/MWUM.c $(SRC)/MWUL.c \
 		  $(SRC)/DWTL.c $(SRC)/MRPH.c \
 		  $(SRC)/MRPL.c

@@ -41,6 +41,7 @@ extern struct bench_operations n_shfile_rd_bg_ops;
 extern struct bench_operations n_shfile_rd_seq_ops;
 extern struct bench_operations n_shblk_rd_ops;
 extern struct bench_operations n_shblk_rd_bg_ops;
+extern struct bench_operations n_shblk_rd_seq_ops;
 extern struct bench_operations n_dir_rd_ops;
 extern struct bench_operations n_dir_rd_bg_ops;
 extern struct bench_operations n_shdir_rd_ops;
