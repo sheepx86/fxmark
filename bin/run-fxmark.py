@@ -33,36 +33,28 @@ class Runner(object):
     CORE_FINE_GRAIN   = 0
     CORE_COARSE_GRAIN = 1
 
+    
     def __init__(self, \
                  core_grain = CORE_COARSE_GRAIN, \
                  pfm_lvl = PerfMon.LEVEL_LOW, \
-                 run_filter = ("*", "*", "*", "*", "*")):
+                 run_filter = ("*", "*", "*", "*", "*"),
+                 cmd_line=None):
         # run config
+        self.cmd_line = cmd_line
         self.CORE_GRAIN    = core_grain
         self.PERFMON_LEVEL = pfm_lvl
         self.FILTER        = run_filter # media, fs, bench, ncore, directio
-        self.DRYRUN        = False
+        self.DRYRUN        = cmd_line.dryrun
         self.DEBUG_OUT     = False
 
         # bench config
-        self.DISK_SIZE     = "8G"
-        self.DURATION      = 15 # seconds
+        self.DISK_SIZE     = cmd_line.disksize
+        self.DURATION      = cmd_line.duration
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
-        self.MEDIA_TYPES   = ["ssd", "hdd", "NVMM", "mem"]
-        self.FS_TYPES      = [
-#        self.FS_TYPES      = ["tmpfs",
-#                              "ext4", "ext4_no_jnl", "ext4_data_jnl",
-                              "ext4",
-                              "ext4_data_jnl",
-                              "xfs",
-                              "ext4_dax",
-                              "xfs_dax",
-                              "btrfs",
-                              "f2fs",
-                              "NOVA",
-                              "pmfs",
-                              # "jfs", "reiserfs", "ext2", "ext3",
-        ]
+        self.MEDIA_TYPES   = cmd_line.mediatypes
+        
+        self.FS_TYPES= cmd_line.filesystems
+            
         self.BENCH_TYPES   = [
             # write/write
             "DWAL",
@@ -160,7 +152,7 @@ class Runner(object):
         self.nhwthr      = self.npcpu * cpupol.SMT_LEVEL
         self.ncores      = self.get_ncores()
         self.test_root   = os.path.normpath(
-            os.path.join(CUR_DIR, self.ROOT_NAME))
+            os.path.join(CUR_DIR, self.ROOT_NAME)) if cmd_line.root is None else cmd_line.root
         self.fxmark_path = os.path.normpath(
             os.path.join(CUR_DIR, self.FXMARK_NAME))
         self.filebench_path = os.path.normpath(
@@ -246,6 +238,8 @@ class Runner(object):
         self.exec_cmd(cmd, self.dev_null)
 
     def set_cpus(self, ncore):
+        if self.cmd_line.dontmanagecpus:
+            return
         if self.active_ncore == ncore:
             return
         self.active_ncore = ncore
@@ -286,9 +280,11 @@ class Runner(object):
 
     def umount(self, where):
         while True:
+            print("trying to unmount... {}".format(where))
             p = self.exec_cmd("sudo umount " + where, self.dev_null)
             if p.returncode is not 0:
                 break
+
         (umount_hook, self.umount_hook) = (self.umount_hook, [])
         map(lambda hook: hook(), umount_hook);
 
@@ -391,8 +387,23 @@ class Runner(object):
         if not rc:
             return False
 
-        p = self.exec_cmd(' '.join(["sudo mount -t", fs, "-o init",
-                                    dev_path, mnt_path]),
+        if self.cmd_line.reload:
+            cmd = "sudo rmmod nova"
+            #self.log(cmd)
+            p = self.exec_cmd(cmd,
+                              self.dev_null)
+
+            cmd = "sudo modprobe nova {}".format(self.cmd_line.modprobeargs)
+            #self.log(cmd)
+            p = self.exec_cmd(cmd,
+                              self.dev_null)
+            if p.returncode is not 0:
+                return False
+
+        cmd = ' '.join(["sudo mount -t", fs, "-o init",
+                                    dev_path, mnt_path])
+        #self.log(cmd)
+        p = self.exec_cmd(cmd,
                           self.dev_null)
         if p.returncode is not 0:
             return False
@@ -563,6 +574,7 @@ class Runner(object):
             self.umount(self.test_root)
             self.set_cpus(0)
 
+            
 def confirm_media_path():
     print("%" * 80)
     print("%% WARNING! WARNING! WARNING! WARNING! WARNING!")
@@ -580,6 +592,36 @@ def confirm_media_path():
     print("\n\n")
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Run fxmark")
+    parser.add_argument("--filesystems",default=["ext4",
+                                                 "ext4_data_jnl",
+                                                 "xfs",
+                                                 "ext4_dax",
+                                                 "xfs_dax",
+                                                 "btrfs",
+                                                 "f2fs",
+                                                 "NOVA",
+                                                 "pmfs"],
+                        nargs="+",
+                        help="Which file systesm to run")
+    parser.add_argument("--mediatypes", default=["ssd", "hdd", "NVMM", "mem"], nargs="+", help="which media types to run")
+    parser.add_argument("--disksize", default="8G", help="How big of a disk to use")
+    parser.add_argument("--duration", default=15, help="how long to run each test")
+    parser.add_argument("--dryrun", "-n", default=False, action="store_true", help="Don't actually do anything")
+    parser.add_argument("--root", default=None, help="Where to run the tests")
+    parser.add_argument("--modprobeargs", default="""measure_timing=0 
+	inplace_data_updates=0
+	wprotect=0 mmap_cow=1 
+	unsafe_metadata=1 
+	replica_metadata=1 metadata_csum=1 dram_struct_csum=1 
+	data_csum=1 data_parity=1""", help="How to load nova module")
+    parser.add_argument("--dontmanagecpus", default=False, action='store_true', help="disable calls to set_cpu()")
+    parser.add_argument("--force", default=False, action='store_true', help="don't warn about deleting stuff")
+    parser.add_argument("--reload", default=False, action='store_true', help="unload and reload nova module")
+    
+    args = parser.parse_args()
+
     # config parameters
     # -----------------
     #
@@ -614,7 +656,8 @@ if __name__ == "__main__":
         #  ("*", "*", "*", str(cpupol.PHYSICAL_CHIPS * cpupol.CORE_PER_CHIP), "*"))
     ]
 
-    confirm_media_path()
+    if not args.force:
+        confirm_media_path()
     for c in run_config:
-        runner = Runner(c[0], c[1], c[2])
+        runner = Runner(c[0], c[1], c[2], args)
         runner.run()
