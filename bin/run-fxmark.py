@@ -146,6 +146,9 @@ class Runner(object):
         }
 
         # misc. setup
+        if cmd_line.chipcount is not None:
+            cpupol.PHYSICAL_CHIPS = int( cmd_line.chipcount)
+            
         self.redirect    = subprocess.PIPE if not self.DEBUG_OUT else None
         self.dev_null    = open("/dev/null", "a") if not self.DEBUG_OUT else None
         self.npcpu       = cpupol.PHYSICAL_CHIPS * cpupol.CORE_PER_CHIP
@@ -619,6 +622,7 @@ if __name__ == "__main__":
     parser.add_argument("--dontmanagecpus", default=False, action='store_true', help="disable calls to set_cpu()")
     parser.add_argument("--force", default=False, action='store_true', help="don't warn about deleting stuff")
     parser.add_argument("--reload", default=False, action='store_true', help="unload and reload nova module")
+    parser.add_argument("--chipcount",  help="override computed CPU count")
     
     args = parser.parse_args()
 
