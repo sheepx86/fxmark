@@ -36,8 +36,6 @@ static int main_work(struct worker *worker)
 			 fx_opt->root, worker->id, iter);
 		if ((fd = open(file, O_CREAT | O_RDWR, S_IRWXU)) == -1)
 			goto err_out;
-	        if (write(fd, page, sizeof(page)) == -1)
-			goto err_out;
 		close(fd);
 	}
 out:
