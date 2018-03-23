@@ -30,6 +30,7 @@ static int pre_work(struct worker *worker)
     struct bench *bench =  worker->bench;
     char path[PATH_MAX];
     int fd, rc = 0;
+    int created = 0;
 
     /* time to create files */
     for (;; ++worker->private[0]) {
@@ -44,6 +45,9 @@ static int pre_work(struct worker *worker)
             goto err_out;
         }
 	close(fd);
+	created++;
+	if (created >= 1000000)
+	    return 0;
     }
  err_out:
     bench->stop = 1;
