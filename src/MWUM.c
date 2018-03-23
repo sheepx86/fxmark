@@ -17,6 +17,8 @@
 #include "util.h"
 #include "rdtsc.h"
 
+static int stop_pre_work;
+
 static void set_test_file(struct worker *worker,
                           uint64_t file_id, char *test_file)
 {
@@ -25,15 +27,27 @@ static void set_test_file(struct worker *worker,
             fx_opt->root, worker->id, file_id);
 }
 
+static void sighandler(int x)
+{
+	stop_pre_work = 1;
+}
+
 static int pre_work(struct worker *worker)
 {
     struct bench *bench =  worker->bench;
     char path[PATH_MAX];
     int fd, rc = 0;
-    int created = 0;
 
+    /* perform pre_work for bench->duration */
+    if (signal(SIGALRM, sighandler) == SIG_ERR) {
+	rc = errno;
+	goto err_out;
+    }
+    alarm(bench->duration * 2);
+
+	/* create private directory */
     /* time to create files */
-    for (;; ++worker->private[0]) {
+    for (; !stop_pre_work; ++worker->private[0]) {
         set_test_file(worker, worker->private[0], path);
         if ((fd = open(path, O_CREAT | O_RDWR, S_IRWXU)) == -1) {
             if (errno == ENOSPC) {
@@ -45,10 +59,10 @@ static int pre_work(struct worker *worker)
             goto err_out;
         }
 	close(fd);
-	created++;
-	if (created >= 100000)
-	    return 0;
     }
+
+    return 0;
+
  err_out:
     bench->stop = 1;
  out:
