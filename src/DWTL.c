@@ -81,6 +81,7 @@ static int pre_work(struct worker *worker)
       }
     }
 
+    rc = 0;
     goto out;
 
 err_out:
