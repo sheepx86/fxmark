@@ -22,12 +22,19 @@
 #include "util.h"
 #include "rdtsc.h"
 
+static int stop_pre_work;
+
 static void set_test_file(struct worker *worker,
                           char *test_file)
 {
     struct fx_opt *fx_opt = fx_opt_worker(worker);
     sprintf(test_file, "%s/u_file_tr-%d.dat",
             fx_opt->root, worker->id);
+}
+
+static void sighandler(int x)
+{
+	stop_pre_work = 1;
 }
 
 static int pre_work(struct worker *worker)
@@ -55,7 +62,14 @@ static int pre_work(struct worker *worker)
     if(bench->directio && (fcntl(fd, F_SETFL, O_DIRECT)==-1)) 
       goto err_out;                                           
 
-    for(;;++worker->private[0]) {
+    /* perform pre_work for bench->duration */
+    if (signal(SIGALRM, sighandler) == SIG_ERR) {
+	rc = errno;
+	goto err_out;
+    }
+    alarm(bench->duration * 2);
+
+    for(; !stop_pre_work; ++worker->private[0]) {
       rc = write(fd, page, PAGE_SIZE);
       if (rc != PAGE_SIZE) {
         if (errno == ENOSPC) {
@@ -66,6 +80,9 @@ static int pre_work(struct worker *worker)
         goto err_out;
       }
     }
+
+    goto out;
+
 err_out:
     bench->stop = 1;
  out:
@@ -93,6 +110,7 @@ static int main_work(struct worker *worker)
         rc = errno;
         goto err_out;
       }
+	  fsync(fd);
     }
  out:
     close(fd);
