@@ -24,12 +24,13 @@
 #
 
 set $dir=/tmp
-set $nfiles=100000
+set $nfiles=500000
 set $meandirwidth=20
 set $meanfilesize=128k
 set $nthreads=50
 set $iosize=1m
 set $meanappendsize=16k
+
 
 define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
 

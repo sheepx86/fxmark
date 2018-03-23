@@ -24,10 +24,10 @@
 #
 
 set $dir=/tmp
-set $nfiles=100000
+set $nfiles=200000
 set $meandirwidth=1000000
-set $meanfilesize=16k
-set $nthreads=16
+set $meanfilesize=32k
+set $nthreads=50
 set $iosize=1m
 set $meanappendsize=16k
 
