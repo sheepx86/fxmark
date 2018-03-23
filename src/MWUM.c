@@ -46,7 +46,7 @@ static int pre_work(struct worker *worker)
         }
 	close(fd);
 	created++;
-	if (created >= 1000000)
+	if (created >= 100000)
 	    return 0;
     }
  err_out:
