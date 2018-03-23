@@ -22,7 +22,6 @@ static int pre_work(struct worker *worker)
 
 static int main_work(struct worker *worker)
 {
-	static char page[PAGE_SIZE];
 	struct bench *bench = worker->bench;
 	struct fx_opt *fx_opt = fx_opt_bench(bench);
 	uint64_t iter;
