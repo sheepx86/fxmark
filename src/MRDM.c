@@ -40,7 +40,6 @@ static int pre_work(struct worker *worker)
 	struct bench *bench = worker->bench;
 	char path[PATH_MAX];
 	int fd, rc = 0;
-	int created = 0;
 
 	/* perform pre_work for bench->duration */
 	if (signal(SIGALRM, sighandler) == SIG_ERR) {
@@ -63,12 +62,8 @@ static int pre_work(struct worker *worker)
 			goto err_out;
 		}
 		close(fd);
-		created++;
-		if (created >= 1000000)
-			break;
 	}
 out:
-	printf("%s: created %d files\n", __func__, created);
 	return rc; 
 err_out:
 	rc = errno;
