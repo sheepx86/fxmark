@@ -73,8 +73,8 @@ class Runner(object):
             "MWRM",
             "MWCL",
             "MWCM",
-#            "MWUM",
-#            "MWUL",
+            "MWUM",
+            "MWUL",
             "DWTL",
 
             # filebench
